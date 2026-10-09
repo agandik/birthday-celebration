@@ -1,0 +1,24 @@
+# Dependencies
+node_modules/
+
+# Production build
+dist/
+
+# Vercel deployment metadata
+.vercel/
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Local test & scratch scripts/artifacts
+scratch/
+backup/
+Taruh disini/
+Taruh\ disini/
+Download*.mp4
+
+# OS generated files
+.DS_Store
+Thumbs.db
