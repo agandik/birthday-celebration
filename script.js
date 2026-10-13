@@ -598,7 +598,7 @@ document.addEventListener('DOMContentLoaded', () => {
       { x: winW * 0.14, y: winH * 0.68, text: 'Gemeccc!', rot: -8 },
       { x: winW * 0.86, y: winH * 0.68, text: 'I Love You!', rot: 8 },
       { x: winW * 0.30, y: winH * 0.86, text: 'Cium Dulu!', rot: -6 },
-      { x: winW * 0.70, y: winH * 0.86, text: 'Bidadariku!', rot: 6 }
+      { x: winW * 0.70, y: winH * 0.86, text: 'Sayangku!', rot: 6 }
     ];
 
     destinations.forEach((dest, i) => {
