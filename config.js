@@ -76,6 +76,6 @@ window.BIRTHDAY_CONFIG = {
       'No matter what life brings our way, I hope we’ll always be there for each other and continue growing together. I love you so much, my love. ❤️'
     ],
     closing: '“I love you more than all the stars in the sky and all the purrs in the world.” ✨🐾\nHappy birthday, my love. Forever and always, you have my heart. ❤️',
-    signature: 'Selamanya menyayangimu, With all my love ❤️🐾'
+    signature: 'With all my love ❤️🐾'
   }
 };

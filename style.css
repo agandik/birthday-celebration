@@ -3199,18 +3199,12 @@ body::before {
   flex-direction: column;
 }
 
-.sign-prompt {
-  font-size: 1.35rem;
-  color: #553E35;
-  font-weight: 600;
-}
-
 .signature-hand {
   font-family: var(--font-cursive);
   font-size: 1.85rem;
   font-weight: 700;
   color: var(--accent-rose);
-  margin-top: -2px;
+  margin-top: 0;
   white-space: nowrap;
 }
 
