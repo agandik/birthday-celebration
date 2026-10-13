@@ -1119,11 +1119,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!isCandleLit || isBlowing) return;
     isBlowing = true;
 
-    // Immediately dismiss reminder if visible
-    if (typeof hideCandleScrollReminder === 'function') {
-      hideCandleScrollReminder();
-    }
-
     // 1. Play soft breath sound & begin subtle flame leaning flutter
     audio.playCandleBlow();
 
@@ -1319,20 +1314,17 @@ document.addEventListener('DOMContentLoaded', () => {
   if (relightCandleBtn) relightCandleBtn.addEventListener('click', relightCandle);
 
   // =========================================================================
-  // 5. CANDLE BLOW SCROLL REMINDER & POINTING CAT ON 2 PULLS DOWN
-  // (EITS, TIUP LILINNYA DULU YUK & KUCING PENUNJUK LILIN)
+  // 5. CAKE GUIDANCE & POINTING CAT ON 2 PULLS DOWN
+  // (PANDUAN TIUP LILIN & KUCING PENUNJUK LILIN SAAT MENARIK 2X KE BAWAH)
   // =========================================================================
-  const candleScrollReminder = document.getElementById('candleScrollReminder');
-  const reminderCloseBtn = document.getElementById('reminderCloseBtn');
-  const reminderBlowNowBtn = document.getElementById('reminderBlowNowBtn');
   const cakeSectionEl = document.getElementById('cakeSection');
   const journeyLockGateEl = document.getElementById('journeyLockGate');
 
-  let reminderTimer = null;
   let reminderCooldown = false;
   let lastPullAttemptTime = 0;
 
-  function showCandleScrollReminder() {
+  // Gentle guidance to keep focus on the cake before blowing the candle
+  function guideAttentionToCandle() {
     if (!isCandleLit || isJourneyUnlocked || isBlowing) return;
     if (reminderCooldown) return;
 
@@ -1378,26 +1370,6 @@ document.addEventListener('DOMContentLoaded', () => {
         cakeSectionEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
       }
     }
-
-    // 5. Show the sweet reminder banner
-    if (candleScrollReminder) {
-      candleScrollReminder.classList.remove('hidden');
-
-      if (reminderTimer) clearTimeout(reminderTimer);
-      reminderTimer = setTimeout(() => {
-        hideCandleScrollReminder();
-      }, 6000);
-    }
-  }
-
-  function hideCandleScrollReminder() {
-    if (candleScrollReminder) {
-      candleScrollReminder.classList.add('hidden');
-    }
-    if (reminderTimer) {
-      clearTimeout(reminderTimer);
-      reminderTimer = null;
-    }
   }
 
   // Handle downward pull / scroll attempts (Muncul setelah menarik 2 kali ke bawah)
@@ -1421,7 +1393,7 @@ document.addEventListener('DOMContentLoaded', () => {
         void flameInstructionTag.offsetWidth;
         flameInstructionTag.classList.add('pulse-attention');
       }
-      showCandleScrollReminder();
+      guideAttentionToCandle();
       return;
     }
 
@@ -1435,7 +1407,7 @@ document.addEventListener('DOMContentLoaded', () => {
         pullCounterTag.classList.remove('hidden');
       }
       audio.playCuriousMew();
-      showCandleScrollReminder();
+      guideAttentionToCandle();
 
       if (pullResetTimer) clearTimeout(pullResetTimer);
       pullResetTimer = setTimeout(() => {
@@ -1468,7 +1440,7 @@ document.addEventListener('DOMContentLoaded', () => {
         candleWrapper.classList.add('cue-attention');
       }
 
-      showCandleScrollReminder();
+      guideAttentionToCandle();
     }
   }
 
@@ -1492,29 +1464,6 @@ document.addEventListener('DOMContentLoaded', () => {
         flameInstructionTag.classList.add('pulse-attention');
       }
       showBirthdayToast('🐾 Meoow! Tiup api lilinnya di sini ya sayang~ 🕯️✨');
-    });
-  }
-
-  if (reminderCloseBtn) {
-    reminderCloseBtn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      hideCandleScrollReminder();
-    });
-  }
-
-  if (reminderBlowNowBtn) {
-    reminderBlowNowBtn.addEventListener('click', () => {
-      hideCandleScrollReminder();
-      if (cakeSectionEl) {
-        cakeSectionEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      }
-      if (flameInstructionTag) {
-        flameInstructionTag.classList.add('pulse-attention');
-      }
-      if (candleWrapper) {
-        candleWrapper.classList.add('cue-attention');
-      }
-      audio.playCuriousMew();
     });
   }
 
