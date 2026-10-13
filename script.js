@@ -1078,6 +1078,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (isCatRevealed || !isCandleLit || isJourneyUnlocked || isBlowing) return;
     if (isCakeInActiveView()) {
       revealCatFlamePointer();
+      window.removeEventListener('scroll', checkCakeScrollPosition);
     }
   }
 
@@ -1334,6 +1335,33 @@ document.addEventListener('DOMContentLoaded', () => {
       toggleVideoPlayBtn.addEventListener('click', toggleVideoPlayback);
     }
     activeVideoPlayer.addEventListener('click', toggleVideoPlayback);
+
+    // CPU Optimization: Only decode/play video when in active viewport and tab is visible
+    if ('IntersectionObserver' in window) {
+      const videoObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting && !document.hidden) {
+            activeVideoPlayer.play().then(() => {
+              if (toggleVideoPlayBtn) {
+                const pauseIcon = toggleVideoPlayBtn.querySelector('.icon-pause');
+                const playIcon = toggleVideoPlayBtn.querySelector('.icon-play');
+                if (pauseIcon) pauseIcon.style.display = 'block';
+                if (playIcon) playIcon.style.display = 'none';
+              }
+            }).catch(() => {});
+          } else {
+            activeVideoPlayer.pause();
+          }
+        });
+      }, { threshold: 0.15 });
+      videoObserver.observe(activeVideoPlayer);
+    }
+
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden && activeVideoPlayer) {
+        activeVideoPlayer.pause();
+      }
+    });
   }
 
   if (expandVideoBtn) {
@@ -1394,16 +1422,22 @@ document.addEventListener('DOMContentLoaded', () => {
   // =========================================================================
   const pawContainer = document.getElementById('pawTrailContainer');
   let lastPawTime = 0;
+  let lastPawX = -999;
+  let lastPawY = -999;
   let mouseRafPending = false;
 
   function createPawParticle(x, y) {
     if (!pawContainer) return;
     const now = Date.now();
-    if (now - lastPawTime < 160) return; // Smoothly throttle to ~6 particles/sec
+    if (now - lastPawTime < 160) return; // Max ~6 particles/sec
+    const dist = Math.hypot(x - lastPawX, y - lastPawY);
+    if (dist < 45) return; // Only spawn if mouse actually moved a noticeable distance
     lastPawTime = now;
+    lastPawX = x;
+    lastPawY = y;
 
-    // Cap maximum particles in DOM to 5 to prevent memory/paint overhead
-    if (pawContainer.children.length >= 5) {
+    // Cap maximum particles in DOM to 4 to prevent memory/paint overhead
+    if (pawContainer.children.length >= 4) {
       pawContainer.firstElementChild.remove();
     }
 
@@ -1418,7 +1452,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     setTimeout(() => {
       if (paw.parentNode) paw.remove();
-    }, 850);
+    }, 750);
   }
 
   // Only bind on desktop mouse (fine pointer). Touch screens should NOT trigger DOM churn on scroll!
@@ -1484,7 +1518,12 @@ document.addEventListener('DOMContentLoaded', () => {
     }, 15000);
   }
 
-  setInterval(spawnPoppableBalloon, 4800);
+  // Spawn balloons gently every 12 seconds only when tab is active (max 2)
+  setInterval(() => {
+    if (!document.hidden) {
+      spawnPoppableBalloon();
+    }
+  }, 12000);
 
   // =========================================================================
   // 11. INTERACTIVE SCREEN-EDGE PEEKING CATS
@@ -1823,8 +1862,30 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Set interval every 2 seconds
-  const autoCatConfettiTimer = setInterval(triggerRandomCatConfetti, 2000);
+  // CPU Optimization: Do NOT run continuous 2-second full-screen canvas confetti loops!
+  // Confetti runs during actual celebrations (blowing candles, tapping cats, replay).
+  // Ambient cat animation triggers a gentle CSS bounce every 15s with 0% CPU canvas overhead.
+  let autoCatCheerTimer = null;
+  function scheduleNextCatAmbientCheer() {
+    autoCatCheerTimer = setTimeout(() => {
+      if (!document.hidden && dancingCatsBar && dancingCatsBar.classList.contains('is-unlocked')) {
+        if (dancingCatUnits && dancingCatUnits.length > 0) {
+          const chosenIdx = Math.floor(Math.random() * dancingCatUnits.length);
+          const unit = dancingCatUnits[chosenIdx];
+          if (unit) {
+            const action = unit.dataset.action || 'cheer';
+            const reactClass = `reacting-${action}`;
+            unit.classList.remove(reactClass);
+            void unit.offsetWidth;
+            unit.classList.add(reactClass);
+            setTimeout(() => unit.classList.remove(reactClass), 820);
+          }
+        }
+      }
+      scheduleNextCatAmbientCheer();
+    }, 15000);
+  }
+  scheduleNextCatAmbientCheer();
   window.triggerRandomCatConfetti = triggerRandomCatConfetti;
 
   // =========================================================================
