@@ -1112,6 +1112,11 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!isCandleLit || isBlowing) return;
     isBlowing = true;
 
+    // Immediately dismiss reminder if visible
+    if (typeof hideCandleScrollReminder === 'function') {
+      hideCandleScrollReminder();
+    }
+
     // 1. Play soft breath sound & begin subtle flame leaning flutter
     audio.playCandleBlow();
 
@@ -1279,6 +1284,156 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   if (relightCandleBtn) relightCandleBtn.addEventListener('click', relightCandle);
+
+  // =========================================================================
+  // 5. CANDLE BLOW SCROLL REMINDER (EITS, TIUP LILINNYA DULU YUK!)
+  // Mengingatkan manis saat mencoba scroll sebelum meniup lilin
+  // =========================================================================
+  const candleScrollReminder = document.getElementById('candleScrollReminder');
+  const reminderCloseBtn = document.getElementById('reminderCloseBtn');
+  const reminderBlowNowBtn = document.getElementById('reminderBlowNowBtn');
+  const cakeSectionEl = document.getElementById('cakeSection');
+  const journeyLockGateEl = document.getElementById('journeyLockGate');
+
+  let reminderTimer = null;
+  let reminderCooldown = false;
+
+  function showCandleScrollReminder() {
+    if (!isCandleLit || isJourneyUnlocked || isBlowing) return;
+    if (reminderCooldown) return;
+
+    reminderCooldown = true;
+    setTimeout(() => { reminderCooldown = false; }, 2600);
+
+    // 1. Play cute curious mew sound
+    audio.playCuriousMew();
+
+    // 2. Pulse attention on the flame instruction tag and candle
+    if (flameInstructionTag) {
+      flameInstructionTag.classList.remove('pulse-attention');
+      void flameInstructionTag.offsetWidth;
+      flameInstructionTag.classList.add('pulse-attention');
+      setTimeout(() => {
+        if (flameInstructionTag) flameInstructionTag.classList.remove('pulse-attention');
+      }, 3500);
+    }
+
+    if (candleWrapper) {
+      candleWrapper.classList.remove('cue-attention');
+      void candleWrapper.offsetWidth;
+      candleWrapper.classList.add('cue-attention');
+      setTimeout(() => {
+        if (candleWrapper) candleWrapper.classList.remove('cue-attention');
+      }, 1000);
+    }
+
+    // 3. Wiggle the lock gate if visible
+    if (journeyLockGateEl) {
+      journeyLockGateEl.classList.remove('cue-shake');
+      void journeyLockGateEl.offsetWidth;
+      journeyLockGateEl.classList.add('cue-shake');
+      setTimeout(() => {
+        if (journeyLockGateEl) journeyLockGateEl.classList.remove('cue-shake');
+      }, 800);
+    }
+
+    // 4. Gently snap back if scrolled past the cake into the bottom lock area
+    if (cakeSectionEl) {
+      const rect = cakeSectionEl.getBoundingClientRect();
+      if (rect.bottom < window.innerHeight * 0.72) {
+        cakeSectionEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }
+
+    // 5. Show the sweet reminder banner
+    if (candleScrollReminder) {
+      candleScrollReminder.classList.remove('hidden');
+
+      if (reminderTimer) clearTimeout(reminderTimer);
+      reminderTimer = setTimeout(() => {
+        hideCandleScrollReminder();
+      }, 6000);
+    }
+  }
+
+  function hideCandleScrollReminder() {
+    if (candleScrollReminder) {
+      candleScrollReminder.classList.add('hidden');
+    }
+    if (reminderTimer) {
+      clearTimeout(reminderTimer);
+      reminderTimer = null;
+    }
+  }
+
+  if (reminderCloseBtn) {
+    reminderCloseBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      hideCandleScrollReminder();
+    });
+  }
+
+  if (reminderBlowNowBtn) {
+    reminderBlowNowBtn.addEventListener('click', () => {
+      hideCandleScrollReminder();
+      if (cakeSectionEl) {
+        cakeSectionEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+      if (flameInstructionTag) {
+        flameInstructionTag.classList.add('pulse-attention');
+      }
+      if (candleWrapper) {
+        candleWrapper.classList.add('cue-attention');
+      }
+      audio.playCuriousMew();
+    });
+  }
+
+  // Detect scroll/wheel/touch attempts to scroll past the cake before blowing the candle
+  let lastTouchY = 0;
+  window.addEventListener('touchstart', (e) => {
+    if (e.touches && e.touches.length > 0) {
+      lastTouchY = e.touches[0].clientY;
+    }
+  }, { passive: true });
+
+  window.addEventListener('touchmove', (e) => {
+    if (!isCandleLit || isJourneyUnlocked || isBlowing) return;
+    if (!cakeSectionEl || !e.touches || e.touches.length === 0) return;
+
+    const currentY = e.touches[0].clientY;
+    const deltaY = lastTouchY - currentY; // positive = swiping up (attempting to scroll down)
+    lastTouchY = currentY;
+
+    if (deltaY > 12) {
+      const rect = cakeSectionEl.getBoundingClientRect();
+      // If user is at or below the cake section and swiping down
+      if (rect.top <= 140 && rect.bottom <= window.innerHeight + 160) {
+        showCandleScrollReminder();
+      }
+    }
+  }, { passive: true });
+
+  window.addEventListener('wheel', (e) => {
+    if (!isCandleLit || isJourneyUnlocked || isBlowing) return;
+    if (!cakeSectionEl) return;
+
+    if (e.deltaY > 6) { // rolling wheel down
+      const rect = cakeSectionEl.getBoundingClientRect();
+      if (rect.top <= 140 && rect.bottom <= window.innerHeight + 160) {
+        showCandleScrollReminder();
+      }
+    }
+  }, { passive: true });
+
+  // If user clicks or taps anywhere on the lock gate before blowing candle
+  if (journeyLockGateEl) {
+    journeyLockGateEl.addEventListener('click', () => {
+      if (isCandleLit && !isJourneyUnlocked) {
+        showCandleScrollReminder();
+      }
+    });
+  }
 
   // Love Whisper Dedication Handler in Hero
   const loveWhisperBtn = document.getElementById('loveWhisperBtn');
