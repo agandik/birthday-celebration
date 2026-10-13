@@ -1065,10 +1065,17 @@ document.addEventListener('DOMContentLoaded', () => {
   const sparklerRight = document.getElementById('sparklerRight');
   const cakeCheerLeft = document.getElementById('cakeCheerLeft');
   const cakeCheerRight = document.getElementById('cakeCheerRight');
+  const catFlamePointer = document.getElementById('catFlamePointer');
+  const catSpeechBubble = document.getElementById('catSpeechBubble');
+  const pullCounterTag = document.getElementById('pullCounterTag');
+  const pullTagText = document.getElementById('pullTagText');
 
   let isCandleLit = true;
   let isBlowing = false;
   let isJourneyUnlocked = false;
+  let isCatFlamePointerVisible = false;
+  let pullDownCount = 0;
+  let pullResetTimer = null;
 
   // Floating Toast Notification Helper
   function showBirthdayToast(msg) {
@@ -1151,6 +1158,22 @@ document.addEventListener('DOMContentLoaded', () => {
       if (sparklerRight) sparklerRight.classList.add('active');
       if (cakeCheerLeft) cakeCheerLeft.classList.add('cheer');
       if (cakeCheerRight) cakeCheerRight.classList.add('cheer');
+
+      // Cheerful reaction from pointing cat if visible
+      if (isCatFlamePointerVisible && catFlamePointer) {
+        if (catSpeechBubble) {
+          catSpeechBubble.innerHTML = '<span>Horeee! Lilinnya ditiup! 🎉🐾</span>';
+        }
+        setTimeout(() => {
+          if (catFlamePointer) {
+            catFlamePointer.classList.add('hidden');
+            isCatFlamePointerVisible = false;
+          }
+        }, 2200);
+      }
+      if (pullCounterTag) {
+        pullCounterTag.classList.add('hidden');
+      }
 
       if (blowCandleBtn) {
         blowCandleBtn.classList.add('blown');
@@ -1260,6 +1283,16 @@ document.addEventListener('DOMContentLoaded', () => {
     if (cakeCheerLeft) cakeCheerLeft.classList.remove('cheer');
     if (cakeCheerRight) cakeCheerRight.classList.remove('cheer');
     if (relightCandleBtn) relightCandleBtn.classList.add('hidden');
+
+    pullDownCount = 0;
+    isCatFlamePointerVisible = false;
+    if (catFlamePointer) {
+      catFlamePointer.classList.add('hidden');
+      if (catSpeechBubble) {
+        catSpeechBubble.innerHTML = '<span>Tuh apinya di sini! Tiup dulu sayang 🐾🔥</span>';
+      }
+    }
+    if (pullCounterTag) pullCounterTag.classList.add('hidden');
   }
 
   // Only the flame itself (or generous touch area) blows out the candle!
@@ -1286,8 +1319,8 @@ document.addEventListener('DOMContentLoaded', () => {
   if (relightCandleBtn) relightCandleBtn.addEventListener('click', relightCandle);
 
   // =========================================================================
-  // 5. CANDLE BLOW SCROLL REMINDER (EITS, TIUP LILINNYA DULU YUK!)
-  // Mengingatkan manis saat mencoba scroll sebelum meniup lilin
+  // 5. CANDLE BLOW SCROLL REMINDER & POINTING CAT ON 2 PULLS DOWN
+  // (EITS, TIUP LILINNYA DULU YUK & KUCING PENUNJUK LILIN)
   // =========================================================================
   const candleScrollReminder = document.getElementById('candleScrollReminder');
   const reminderCloseBtn = document.getElementById('reminderCloseBtn');
@@ -1297,13 +1330,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
   let reminderTimer = null;
   let reminderCooldown = false;
+  let lastPullAttemptTime = 0;
 
   function showCandleScrollReminder() {
     if (!isCandleLit || isJourneyUnlocked || isBlowing) return;
     if (reminderCooldown) return;
 
     reminderCooldown = true;
-    setTimeout(() => { reminderCooldown = false; }, 2600);
+    setTimeout(() => { reminderCooldown = false; }, 2400);
 
     // 1. Play cute curious mew sound
     audio.playCuriousMew();
@@ -1366,6 +1400,101 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  // Handle downward pull / scroll attempts (Muncul setelah menarik 2 kali ke bawah)
+  function handlePullDownAttempt() {
+    if (!isCandleLit || isJourneyUnlocked || isBlowing) return;
+    if (!cakeSectionEl) return;
+
+    const rect = cakeSectionEl.getBoundingClientRect();
+    // Active when viewing the cake section
+    if (rect.top > window.innerHeight * 0.88 || rect.bottom < 60) return;
+
+    // If cat is already visible, bounce it cheerfully and re-point towards the flame
+    if (isCatFlamePointerVisible && catFlamePointer) {
+      catFlamePointer.classList.remove('pop-active');
+      void catFlamePointer.offsetWidth;
+      catFlamePointer.classList.add('pop-active');
+      audio.playCuriousMew();
+
+      if (flameInstructionTag) {
+        flameInstructionTag.classList.remove('pulse-attention');
+        void flameInstructionTag.offsetWidth;
+        flameInstructionTag.classList.add('pulse-attention');
+      }
+      showCandleScrollReminder();
+      return;
+    }
+
+    // Increment pull counter
+    pullDownCount++;
+
+    if (pullDownCount === 1) {
+      // 1st Pull: Show subtle hint tag to guide the 2nd pull
+      if (pullCounterTag) {
+        if (pullTagText) pullTagText.textContent = 'Tarik 1x lagi untuk bantuan kucing... 🐾';
+        pullCounterTag.classList.remove('hidden');
+      }
+      audio.playCuriousMew();
+      showCandleScrollReminder();
+
+      if (pullResetTimer) clearTimeout(pullResetTimer);
+      pullResetTimer = setTimeout(() => {
+        pullDownCount = 0;
+        if (pullCounterTag) pullCounterTag.classList.add('hidden');
+      }, 7000);
+
+    } else if (pullDownCount >= 2) {
+      // 2nd Pull: CAT FIGURE EMERGES & POINTS DIRECTLY AT THE FLAME!
+      if (pullResetTimer) clearTimeout(pullResetTimer);
+      if (pullCounterTag) pullCounterTag.classList.add('hidden');
+
+      isCatFlamePointerVisible = true;
+      if (catFlamePointer) {
+        catFlamePointer.classList.remove('hidden');
+        catFlamePointer.classList.add('pop-active');
+        catFlamePointer.setAttribute('aria-hidden', 'false');
+      }
+
+      audio.playCuriousMew();
+
+      if (flameInstructionTag) {
+        flameInstructionTag.classList.remove('pulse-attention');
+        void flameInstructionTag.offsetWidth;
+        flameInstructionTag.classList.add('pulse-attention');
+      }
+      if (candleWrapper) {
+        candleWrapper.classList.remove('cue-attention');
+        void candleWrapper.offsetWidth;
+        candleWrapper.classList.add('cue-attention');
+      }
+
+      showCandleScrollReminder();
+    }
+  }
+
+  // Interactive tap on the cat figure
+  if (catFlamePointer) {
+    catFlamePointer.addEventListener('click', (e) => {
+      e.stopPropagation();
+      audio.playCuriousMew();
+      catFlamePointer.classList.remove('pop-active');
+      void catFlamePointer.offsetWidth;
+      catFlamePointer.classList.add('pop-active');
+
+      if (flame) {
+        flame.classList.remove('cue-flicker');
+        void flame.offsetWidth;
+        flame.classList.add('cue-flicker');
+      }
+      if (flameInstructionTag) {
+        flameInstructionTag.classList.remove('pulse-attention');
+        void flameInstructionTag.offsetWidth;
+        flameInstructionTag.classList.add('pulse-attention');
+      }
+      showBirthdayToast('🐾 Meoow! Tiup api lilinnya di sini ya sayang~ 🕯️✨');
+    });
+  }
+
   if (reminderCloseBtn) {
     reminderCloseBtn.addEventListener('click', (e) => {
       e.stopPropagation();
@@ -1389,11 +1518,16 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Detect scroll/wheel/touch attempts to scroll past the cake before blowing the candle
+  // Touch & wheel gesture detection for pull down / scroll down attempts
+  let touchStartY = 0;
   let lastTouchY = 0;
+  let touchPullTriggered = false;
+
   window.addEventListener('touchstart', (e) => {
     if (e.touches && e.touches.length > 0) {
+      touchStartY = e.touches[0].clientY;
       lastTouchY = e.touches[0].clientY;
+      touchPullTriggered = false;
     }
   }, { passive: true });
 
@@ -1402,26 +1536,29 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!cakeSectionEl || !e.touches || e.touches.length === 0) return;
 
     const currentY = e.touches[0].clientY;
-    const deltaY = lastTouchY - currentY; // positive = swiping up (attempting to scroll down)
+    const swipeUpDelta = lastTouchY - currentY; // swiping up to scroll down
+    const pullDownDelta = currentY - touchStartY; // dragging downwards
     lastTouchY = currentY;
 
-    if (deltaY > 12) {
-      const rect = cakeSectionEl.getBoundingClientRect();
-      // If user is at or below the cake section and swiping down
-      if (rect.top <= 140 && rect.bottom <= window.innerHeight + 160) {
-        showCandleScrollReminder();
-      }
+    if (!touchPullTriggered && (swipeUpDelta > 16 || pullDownDelta > 22)) {
+      touchPullTriggered = true;
+      handlePullDownAttempt();
     }
+  }, { passive: true });
+
+  window.addEventListener('touchend', () => {
+    touchPullTriggered = false;
   }, { passive: true });
 
   window.addEventListener('wheel', (e) => {
     if (!isCandleLit || isJourneyUnlocked || isBlowing) return;
     if (!cakeSectionEl) return;
 
-    if (e.deltaY > 6) { // rolling wheel down
-      const rect = cakeSectionEl.getBoundingClientRect();
-      if (rect.top <= 140 && rect.bottom <= window.innerHeight + 160) {
-        showCandleScrollReminder();
+    if (e.deltaY > 8) { // scrolling / rolling wheel down
+      const now = Date.now();
+      if (now - lastPullAttemptTime > 360) {
+        lastPullAttemptTime = now;
+        handlePullDownAttempt();
       }
     }
   }, { passive: true });
@@ -1430,7 +1567,7 @@ document.addEventListener('DOMContentLoaded', () => {
   if (journeyLockGateEl) {
     journeyLockGateEl.addEventListener('click', () => {
       if (isCandleLit && !isJourneyUnlocked) {
-        showCandleScrollReminder();
+        handlePullDownAttempt();
       }
     });
   }
