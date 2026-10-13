@@ -1189,10 +1189,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const modalCloseBtn = document.getElementById('modalCloseBtn');
   const modalImage = document.getElementById('modalImage');
   const modalVideo = document.getElementById('modalVideo');
-  const modalTitle = document.getElementById('modalTitle');
-  const modalCaption = document.getElementById('modalCaption');
 
-  function openPolaroidModal({ title, caption, imgSrc, videoSrc }) {
+  function openPolaroidModal({ imgSrc, videoSrc }) {
     if (!polaroidModal) return;
 
     if (videoSrc && modalVideo) {
@@ -1211,9 +1209,6 @@ document.addEventListener('DOMContentLoaded', () => {
         modalImage.src = imgSrc;
       }
     }
-
-    if (modalTitle) modalTitle.textContent = title || 'Kenangan Indah';
-    if (modalCaption) modalCaption.textContent = caption || '';
 
     if (typeof polaroidModal.showModal === 'function') {
       polaroidModal.showModal();

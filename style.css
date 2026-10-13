@@ -3337,7 +3337,7 @@ body::before {
 
 
 /* ==========================================================================
-   MODAL LIGHTBOX DETAIL FOTO POLAROID
+   MODAL LIGHTBOX DETAIL FOTO POLAROID (HANYA MENAMPILKAN FOTO)
    ========================================================================== */
 .polaroid-modal {
   position: fixed;
@@ -3345,29 +3345,29 @@ body::before {
   margin: auto;
   border: none;
   background: transparent;
-  max-width: 520px;
-  width: 90%;
+  max-width: 480px;
+  width: 92%;
   padding: 0;
   z-index: 1000;
   overflow: visible;
 }
 
 .polaroid-modal::backdrop {
-  background: rgba(30, 20, 16, 0.65);
+  background: rgba(30, 20, 16, 0.72);
   backdrop-filter: blur(8px);
 }
 
 .modal-card {
   position: relative;
   background: #FFFFFF;
-  padding: 18px 18px 24px;
-  border-radius: 12px;
-  box-shadow: var(--shadow-deep);
+  padding: 14px;
+  border-radius: 16px;
+  box-shadow: 0 24px 60px -10px rgba(20, 10, 8, 0.45), 0 8px 24px rgba(0, 0, 0, 0.25);
   display: flex;
   flex-direction: column;
   align-items: center;
   text-align: center;
-  animation: modalEnter 0.4s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+  animation: modalEnter 0.35s cubic-bezier(0.18, 0.89, 0.32, 1.28);
 }
 
 @keyframes modalEnter {
@@ -3394,11 +3394,12 @@ body::before {
   font-size: 1rem;
   font-weight: 800;
   cursor: pointer;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
   display: flex;
   align-items: center;
   justify-content: center;
   transition: var(--transition-smooth);
+  z-index: 15;
 }
 
 .modal-close-btn:hover {
@@ -3408,41 +3409,24 @@ body::before {
 
 .modal-img-container {
   width: 100%;
-  aspect-ratio: 1 / 1;
+  max-height: 80vh;
   background: #F8F2EE;
-  border-radius: 6px;
+  border-radius: 10px;
   overflow: hidden;
-  margin-bottom: 1.2rem;
+  margin-bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .modal-image,
 .modal-video {
   width: 100%;
-  height: 100%;
-  object-fit: cover;
+  height: auto;
+  max-height: 78vh;
+  object-fit: contain;
   display: block;
-}
-
-.modal-title {
-  font-family: var(--font-serif);
-  font-size: 1.5rem;
-  color: var(--text-dark);
-  margin-bottom: 0.6rem;
-}
-
-.modal-caption {
-  font-size: 1.05rem;
-  color: var(--text-medium);
-  line-height: 1.6;
-  margin-bottom: 1rem;
-}
-
-.modal-paw-decor {
-  font-size: 0.8rem;
-  font-weight: 700;
-  color: var(--accent-peach);
-  letter-spacing: 2px;
-  text-transform: uppercase;
+  border-radius: 8px;
 }
 
 /* ==========================================================================
