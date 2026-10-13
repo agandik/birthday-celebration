@@ -70,12 +70,12 @@ window.BIRTHDAY_CONFIG = {
   letter: {
     salutation: 'Hai Sayangku,',
     paragraphs: [
-      'Selamat bertambah usia, manusia paling berharga yang pernah hadir dalam hidupku. Hari ini bukan sekadar pergantian angka, tapi perayaan atas kehadiranmu yang membawa begitu banyak warna, kehangatan, dan tawa di setiap hariku.',
-      'Terima kasih sudah menjadi dirimu apa adanya — yang tulus, yang hatinya begitu lembut, dan yang tingkahnya kadang menggemaskan seperti anak kucing kecil. Setiap momen bersamamu adalah kenangan yang selalu ingin kujaga baik-baik.',
-      'Di usiamu yang baru ini, doaku sederhana: semoga langkahmu selalu diringankan, hatimu selalu damai, kesehatanmu selalu terjaga, dan impian-impian hebat yang sering kamu ceritakan perlahan menjadi kenyataan.',
-      'Jangan pernah ragu melangkah, karena di belakangmu, di sampingmu, di mana pun kamu berada — akan selalu ada aku yang bangga dan siap mendukungmu sepenuh hati.'
+      'Happy birthday, sayangku! ❤️🎂',
+      'Terima kasih sudah menjadi bagian terbaik di dalam hidupku. Terima kasih karena selalu hadir dan menemani aku, baik dalam susah maupun senang. Rasanya tulisan ini nggak akan pernah cukup untuk mengungkapkan semua rasa terima kasihku buat sayang.',
+      'Aku bersyukur banget bisa punya seseorang sebaik sayang, dengan segala tingkah gemecc yang selalu berhasil bikin aku senyum. Semoga di usia yang baru ini, sayang selalu sehat, bahagia, dan semua hal baik yang diimpikan bisa terwujud satu per satu.',
+      'No matter what life brings our way, I hope we’ll always be there for each other and continue growing together. I love you so much, my love. ❤️'
     ],
-    closing: 'I love you more than all the stars in the sky — and all the purrs in the world.',
-    signature: 'Dari orang yang paling menyayangimu'
+    closing: '“I love you more than all the stars in the sky and all the purrs in the world.” ✨🐾\nHappy birthday, my love. Forever and always, you have my heart. ❤️',
+    signature: 'Selamanya menyayangimu, With all my love ❤️🐾'
   }
 };

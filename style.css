@@ -3492,6 +3492,14 @@ body:not(.intro-active) .flower-shower-container {
   margin-top: 6px;
 }
 
+.letter-closing-final {
+  margin-top: 14px;
+  font-size: 1.52rem;
+  line-height: 1.5;
+  color: #2D211C;
+  font-weight: 600;
+}
+
 /* Bottom Signature & 3D Wax Seal Row */
 .letter-sign-row {
   margin-top: 25px;
@@ -3918,6 +3926,10 @@ body:not(.intro-active) .flower-shower-container {
   .letter-closing .quote-romantic {
     font-size: 1.4rem;
   }
+  .letter-closing-final {
+    font-size: 1.38rem;
+    line-height: 1.45;
+  }
   /* Floating Music Player: Pinned cleanly to top-right away from bottom dancing cats */
   .music-widget {
     top: 0.85rem;
@@ -4249,6 +4261,10 @@ body:not(.intro-active) .flower-shower-container {
   }
   .letter-closing .quote-romantic {
     font-size: 1.32rem;
+  }
+  .letter-closing-final {
+    font-size: 1.3rem;
+    line-height: 1.4;
   }
   .signature-hand {
     font-size: 1.65rem;
