@@ -792,6 +792,10 @@ document.addEventListener('DOMContentLoaded', () => {
   let isCandleLit = true;
   let isBlowing = false;
   let isJourneyUnlocked = false;
+  let isCatRevealed = false;
+  let catScrollCount = 0;
+  let catScrollResetTimer = null;
+  let lastScrollAttemptTime = 0;
 
   // Floating Toast Notification Helper
   function showBirthdayToast(msg) {
@@ -870,8 +874,8 @@ document.addEventListener('DOMContentLoaded', () => {
       if (cakeCheerLeft) cakeCheerLeft.classList.add('cheer');
       if (cakeCheerRight) cakeCheerRight.classList.add('cheer');
 
-      // Cheerful reaction from pointing cat
-      if (catFlamePointer) {
+      // Cheerful reaction from pointing cat if it was revealed
+      if (isCatRevealed && catFlamePointer) {
         if (catSpeechBubble) {
           catSpeechBubble.innerHTML = '<span>Horeee! Lilinnya ditiup! 🎉🐾</span>';
         }
@@ -880,6 +884,8 @@ document.addEventListener('DOMContentLoaded', () => {
             catFlamePointer.classList.add('hidden');
           }
         }, 2200);
+      } else if (catFlamePointer) {
+        catFlamePointer.classList.add('hidden');
       }
 
       if (blowCandleBtn) {
@@ -974,8 +980,12 @@ document.addEventListener('DOMContentLoaded', () => {
     if (cakeCheerRight) cakeCheerRight.classList.remove('cheer');
     if (relightCandleBtn) relightCandleBtn.classList.add('hidden');
 
+    isCatRevealed = false;
+    catScrollCount = 0;
     if (catFlamePointer) {
-      catFlamePointer.classList.remove('hidden');
+      catFlamePointer.classList.add('hidden');
+      catFlamePointer.classList.remove('pop-active');
+      catFlamePointer.setAttribute('aria-hidden', 'true');
       if (catSpeechBubble) {
         catSpeechBubble.innerHTML = '<span>Tuh apinya di sini! Tiup dulu sayang 🐾🔥</span>';
       }
@@ -1006,8 +1016,110 @@ document.addEventListener('DOMContentLoaded', () => {
   if (relightCandleBtn) relightCandleBtn.addEventListener('click', relightCandle);
 
   // =========================================================================
-  // 5. CAKE GUIDANCE & CAT FLAME POINTER INTERACTION
+  // 5. CAKE GUIDANCE & CAT FLAME POINTER (MUNCUL SETELAH DISCROLL 2 KALI)
   // =========================================================================
+  const cakeSectionEl = document.getElementById('cakeSection');
+
+  function isCakeInActiveView() {
+    if (!cakeSectionEl) return false;
+    const rect = cakeSectionEl.getBoundingClientRect();
+    const windowHeight = window.innerHeight;
+    const scrollY = window.pageYOffset || document.documentElement.scrollTop;
+    const isAtBottom = (windowHeight + scrollY) >= (document.documentElement.scrollHeight - 80);
+    const isCakeVisible = rect.top < windowHeight * 0.8 && rect.bottom > 80;
+    return isCakeVisible || isAtBottom;
+  }
+
+  function registerCakeScrollAttempt() {
+    if (isCatRevealed || !isCandleLit || isJourneyUnlocked || isBlowing) return;
+    if (!isCakeInActiveView()) return;
+
+    const now = Date.now();
+    if (now - lastScrollAttemptTime < 280) return;
+    lastScrollAttemptTime = now;
+
+    catScrollCount++;
+
+    if (catScrollResetTimer) clearTimeout(catScrollResetTimer);
+    catScrollResetTimer = setTimeout(() => {
+      catScrollCount = 0;
+    }, 12000);
+
+    if (catScrollCount >= 2) {
+      revealCatFlamePointer();
+    }
+  }
+
+  function revealCatFlamePointer() {
+    if (isCatRevealed) return;
+    isCatRevealed = true;
+    if (catScrollResetTimer) clearTimeout(catScrollResetTimer);
+
+    if (catFlamePointer) {
+      catFlamePointer.classList.remove('hidden');
+      catFlamePointer.classList.remove('pop-active');
+      void catFlamePointer.offsetWidth;
+      catFlamePointer.classList.add('pop-active');
+      catFlamePointer.setAttribute('aria-hidden', 'false');
+
+      if (catSpeechBubble) {
+        catSpeechBubble.innerHTML = '<span>Tuh apinya di sini! Tiup dulu sayang 🐾🔥</span>';
+      }
+      audio.playCuriousMew();
+    }
+  }
+
+  // Wheel detection (Desktop)
+  let lastWheelAttemptTime = 0;
+  window.addEventListener('wheel', (e) => {
+    if (isCatRevealed || !isCandleLit || isJourneyUnlocked || isBlowing) return;
+    if (e.deltaY > 6 && isCakeInActiveView()) {
+      const now = Date.now();
+      if (now - lastWheelAttemptTime > 280) {
+        lastWheelAttemptTime = now;
+        registerCakeScrollAttempt();
+      }
+    }
+  }, { passive: true });
+
+  // Touch gesture detection (Mobile swipe up to scroll down)
+  let touchStartY = 0;
+  let touchScrollFired = false;
+
+  window.addEventListener('touchstart', (e) => {
+    if (e.touches && e.touches.length > 0) {
+      touchStartY = e.touches[0].clientY;
+      touchScrollFired = false;
+    }
+  }, { passive: true });
+
+  window.addEventListener('touchmove', (e) => {
+    if (isCatRevealed || !isCandleLit || isJourneyUnlocked || isBlowing) return;
+    if (!e.touches || e.touches.length === 0) return;
+    if (!isCakeInActiveView()) return;
+
+    const currentY = e.touches[0].clientY;
+    const swipeUpDelta = touchStartY - currentY; // positive when swiping up
+
+    if (!touchScrollFired && swipeUpDelta > 20) {
+      touchScrollFired = true;
+      registerCakeScrollAttempt();
+    }
+  }, { passive: true });
+
+  window.addEventListener('touchend', () => {
+    touchScrollFired = false;
+    touchStartY = 0;
+  }, { passive: true });
+
+  // Keyboard navigation down
+  window.addEventListener('keydown', (e) => {
+    if (isCatRevealed || !isCandleLit || isJourneyUnlocked || isBlowing) return;
+    if (['ArrowDown', 'PageDown', 'Space'].includes(e.code) && isCakeInActiveView()) {
+      registerCakeScrollAttempt();
+    }
+  }, { passive: true });
+
   // Interactive tap on the cat figure beside the candle
   if (catFlamePointer) {
     catFlamePointer.addEventListener('click', (e) => {
