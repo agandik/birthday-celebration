@@ -788,75 +788,10 @@ document.addEventListener('DOMContentLoaded', () => {
   const cakeCheerRight = document.getElementById('cakeCheerRight');
   const catFlamePointer = document.getElementById('catFlamePointer');
   const catSpeechBubble = document.getElementById('catSpeechBubble');
-  const pullCounterTag = document.getElementById('pullCounterTag');
-  const pullTagText = document.getElementById('pullTagText');
 
   let isCandleLit = true;
   let isBlowing = false;
   let isJourneyUnlocked = false;
-  let isCatFlamePointerVisible = false;
-  let pullDownCount = 0;
-  let pullResetTimer = null;
-
-  // Scroll lock & precise centering state during return back to cake
-  let isAutoCenteringCake = false;
-  let autoCenterTimer = null;
-  let activeScrollEndHandler = null;
-
-  function unlockCakeScroll() {
-    if (autoCenterTimer) {
-      clearTimeout(autoCenterTimer);
-      autoCenterTimer = null;
-    }
-    if (activeScrollEndHandler) {
-      window.removeEventListener('scrollend', activeScrollEndHandler);
-      activeScrollEndHandler = null;
-    }
-    isAutoCenteringCake = false;
-    document.body.classList.remove('cake-scroll-locked');
-    touchStartY = 0;
-    lastTouchY = 0;
-    touchPullTriggered = false;
-  }
-
-  function autoScrollCakeToCenter(forceLock = true) {
-    if (!isCandleLit || isJourneyUnlocked || isBlowing) return;
-    const cakeEl = document.getElementById('cakeStructure') || document.getElementById('cakeSection');
-    if (!cakeEl) return;
-
-    const rect = cakeEl.getBoundingClientRect();
-    const currentScrollY = window.pageYOffset || document.documentElement.scrollTop;
-    let targetOffset = (window.innerHeight - rect.height) / 2;
-    if (targetOffset < 24) targetOffset = 24; // Ensure flame and hint speech bubble are comfortably visible
-    const targetY = Math.max(0, Math.round(currentScrollY + rect.top - targetOffset));
-
-    // If already centered within 10px, skip redundant locking
-    if (Math.abs(currentScrollY - targetY) < 10) {
-      return;
-    }
-
-    if (forceLock) {
-      isAutoCenteringCake = true;
-      document.body.classList.add('cake-scroll-locked');
-    }
-
-    window.scrollTo({
-      top: targetY,
-      behavior: 'smooth'
-    });
-
-    if (forceLock) {
-      if (autoCenterTimer) clearTimeout(autoCenterTimer);
-      if (activeScrollEndHandler) window.removeEventListener('scrollend', activeScrollEndHandler);
-
-      activeScrollEndHandler = () => {
-        setTimeout(unlockCakeScroll, 60);
-      };
-
-      window.addEventListener('scrollend', activeScrollEndHandler, { once: true });
-      autoCenterTimer = setTimeout(unlockCakeScroll, 750);
-    }
-  }
 
   // Floating Toast Notification Helper
   function showBirthdayToast(msg) {
@@ -883,7 +818,10 @@ document.addEventListener('DOMContentLoaded', () => {
         e.preventDefault();
         const targetName = link.dataset.lockedTarget || 'halaman ini';
         showBirthdayToast(`Tiup lilin kuemu terlebih dahulu ya sayang untuk membuka ${targetName}!`);
-        autoScrollCakeToCenter(true);
+        const cakeEl = document.getElementById('cakeSection');
+        if (cakeEl) {
+          cakeEl.scrollIntoView({ behavior: 'smooth' });
+        }
         if (candleWrapper) {
           candleWrapper.classList.add('pulse-btn');
           setTimeout(() => candleWrapper.classList.remove('pulse-btn'), 1800);
@@ -896,7 +834,6 @@ document.addEventListener('DOMContentLoaded', () => {
   function blowOutCandle() {
     if (!isCandleLit || isBlowing) return;
     isBlowing = true;
-    unlockCakeScroll();
 
     // 1. Play soft breath sound & begin subtle flame leaning flutter
     audio.playCandleBlow();
@@ -933,20 +870,16 @@ document.addEventListener('DOMContentLoaded', () => {
       if (cakeCheerLeft) cakeCheerLeft.classList.add('cheer');
       if (cakeCheerRight) cakeCheerRight.classList.add('cheer');
 
-      // Cheerful reaction from pointing cat if visible
-      if (isCatFlamePointerVisible && catFlamePointer) {
+      // Cheerful reaction from pointing cat
+      if (catFlamePointer) {
         if (catSpeechBubble) {
           catSpeechBubble.innerHTML = '<span>Horeee! Lilinnya ditiup! 🎉🐾</span>';
         }
         setTimeout(() => {
           if (catFlamePointer) {
             catFlamePointer.classList.add('hidden');
-            isCatFlamePointerVisible = false;
           }
         }, 2200);
-      }
-      if (pullCounterTag) {
-        pullCounterTag.classList.add('hidden');
       }
 
       if (blowCandleBtn) {
@@ -990,46 +923,29 @@ document.addEventListener('DOMContentLoaded', () => {
     isJourneyUnlocked = true;
 
     const lockedWrapper = document.getElementById('lockedJourneyWrapper');
-    const lockGate = document.getElementById('journeyLockGate');
     const dancingCatsBar = document.getElementById('dancingCatsBar');
-    const exploreBtn = document.getElementById('exploreJourneyBtn');
     const navLockBadges = document.querySelectorAll('.nav-lock-badge');
 
-    // 1. Transform the Lock Gate into celebration unlocked gateway
-    if (lockGate) {
-      lockGate.classList.add('unlocked');
-      const gateTitle = document.getElementById('gateTitle');
-      const gateDesc = document.getElementById('gateDesc');
-      const gateLockIcon = document.getElementById('gateLockIcon');
-      const gateHint = document.getElementById('gateHint');
-
-      if (gateTitle) gateTitle.textContent = 'Pintu Kejutan Telah Terbuka!';
-      if (gateDesc) gateDesc.textContent = 'Doamu telah terucap. Yuk jelajahi lembaran cerita kita di bawah.';
-      if (gateLockIcon) gateLockIcon.innerHTML = '<svg class="svg-gate-lock"><use href="#icon-unlock"></use></svg>';
-      if (gateHint) gateHint.style.display = 'none';
-      if (exploreBtn) exploreBtn.classList.remove('hidden');
-    }
-
-    // 2. Smoothly reveal the locked journey wrapper
+    // 1. Smoothly reveal the locked journey wrapper
     if (lockedWrapper) {
       lockedWrapper.classList.remove('is-locked');
       lockedWrapper.classList.add('is-unlocked');
       lockedWrapper.removeAttribute('aria-hidden');
     }
 
-    // 3. Smoothly reveal dancing cats bar at bottom
+    // 2. Smoothly reveal dancing cats bar at bottom
     if (dancingCatsBar) {
       dancingCatsBar.classList.remove('is-locked');
       dancingCatsBar.classList.add('is-unlocked');
     }
 
-    // 4. Update nav lock badges in hero
+    // 3. Update nav lock badges in hero
     navLockBadges.forEach(badge => {
       badge.innerHTML = '<svg class="svg-lock-micro"><use href="#icon-sparkle"></use></svg>';
       badge.classList.add('unlocked');
     });
 
-    // 5. Celebration fanfare after 400ms
+    // 4. Celebration fanfare after 400ms
     setTimeout(() => {
       launchFestiveConfetti({
         particleCount: 85,
@@ -1038,7 +954,7 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     }, 450);
 
-    // 6. First bottom cat throws confetti as bar slides in
+    // 5. First bottom cat throws confetti as bar slides in
     setTimeout(() => {
       if (typeof triggerRandomCatConfetti === 'function') {
         triggerRandomCatConfetti();
@@ -1048,7 +964,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function relightCandle() {
     if (isBlowing) return;
-    unlockCakeScroll();
     isCandleLit = true;
     if (flame) flame.classList.remove('out', 'is-blowing');
     if (flameInstructionTag) flameInstructionTag.classList.remove('fade-out');
@@ -1059,15 +974,12 @@ document.addEventListener('DOMContentLoaded', () => {
     if (cakeCheerRight) cakeCheerRight.classList.remove('cheer');
     if (relightCandleBtn) relightCandleBtn.classList.add('hidden');
 
-    pullDownCount = 0;
-    isCatFlamePointerVisible = false;
     if (catFlamePointer) {
-      catFlamePointer.classList.add('hidden');
+      catFlamePointer.classList.remove('hidden');
       if (catSpeechBubble) {
         catSpeechBubble.innerHTML = '<span>Tuh apinya di sini! Tiup dulu sayang 🐾🔥</span>';
       }
     }
-    if (pullCounterTag) pullCounterTag.classList.add('hidden');
   }
 
   // Only the flame itself (or generous touch area) blows out the candle!
@@ -1094,144 +1006,9 @@ document.addEventListener('DOMContentLoaded', () => {
   if (relightCandleBtn) relightCandleBtn.addEventListener('click', relightCandle);
 
   // =========================================================================
-  // 5. CAKE GUIDANCE & POINTING CAT ON 2 PULLS DOWN
-  // (PANDUAN TIUP LILIN & KUCING PENUNJUK LILIN SAAT MENARIK 2X KE BAWAH)
+  // 5. CAKE GUIDANCE & CAT FLAME POINTER INTERACTION
   // =========================================================================
-  const cakeSectionEl = document.getElementById('cakeSection');
-  const journeyLockGateEl = document.getElementById('journeyLockGate');
-
-  let reminderCooldown = false;
-  let lastPullAttemptTime = 0;
-
-  // Gentle guidance to keep focus on the cake before blowing the candle
-  function guideAttentionToCandle() {
-    if (!isCandleLit || isJourneyUnlocked || isBlowing) return;
-    if (reminderCooldown) return;
-
-    reminderCooldown = true;
-    setTimeout(() => { reminderCooldown = false; }, 2400);
-
-    // 1. Play cute curious mew sound
-    audio.playCuriousMew();
-
-    // 2. Pulse attention on the flame instruction tag and candle
-    if (flameInstructionTag) {
-      flameInstructionTag.classList.remove('pulse-attention');
-      void flameInstructionTag.offsetWidth;
-      flameInstructionTag.classList.add('pulse-attention');
-      setTimeout(() => {
-        if (flameInstructionTag) flameInstructionTag.classList.remove('pulse-attention');
-      }, 3500);
-    }
-
-    if (candleWrapper) {
-      candleWrapper.classList.remove('cue-attention');
-      void candleWrapper.offsetWidth;
-      candleWrapper.classList.add('cue-attention');
-      setTimeout(() => {
-        if (candleWrapper) candleWrapper.classList.remove('cue-attention');
-      }, 1000);
-    }
-
-    // 3. Wiggle the lock gate if visible
-    if (journeyLockGateEl) {
-      journeyLockGateEl.classList.remove('cue-shake');
-      void journeyLockGateEl.offsetWidth;
-      journeyLockGateEl.classList.add('cue-shake');
-      setTimeout(() => {
-        if (journeyLockGateEl) journeyLockGateEl.classList.remove('cue-shake');
-      }, 800);
-    }
-
-    // 4. Gently snap back with scroll lock if scrolled past the cake into the bottom lock area
-    const cakeEl = document.getElementById('cakeStructure') || cakeSectionEl;
-    if (cakeEl) {
-      const rect = cakeEl.getBoundingClientRect();
-      if (rect.bottom < window.innerHeight * 0.65 || rect.top > window.innerHeight * 0.7) {
-        autoScrollCakeToCenter(true);
-      }
-    }
-  }
-
-  // Handle downward pull / scroll attempts (Muncul setelah menarik 2 kali ke bawah)
-  function handlePullDownAttempt() {
-    if (!isCandleLit || isJourneyUnlocked || isBlowing) return;
-    if (!cakeSectionEl) return;
-
-    const rect = cakeSectionEl.getBoundingClientRect();
-    // Active when viewing the cake section
-    if (rect.top > window.innerHeight * 0.88 || rect.bottom < 60) return;
-
-    // If cat is already visible, bounce it cheerfully, re-center cake with lock, and point towards flame
-    if (isCatFlamePointerVisible && catFlamePointer) {
-      catFlamePointer.classList.remove('pop-active');
-      void catFlamePointer.offsetWidth;
-      catFlamePointer.classList.add('pop-active');
-      audio.playCuriousMew();
-
-      if (flameInstructionTag) {
-        flameInstructionTag.classList.remove('pulse-attention');
-        void flameInstructionTag.offsetWidth;
-        flameInstructionTag.classList.add('pulse-attention');
-      }
-
-      autoScrollCakeToCenter(true);
-      guideAttentionToCandle();
-      return;
-    }
-
-    // Increment pull counter
-    pullDownCount++;
-
-    if (pullDownCount === 1) {
-      // 1st Pull: Show subtle hint tag to guide the 2nd pull & re-center smoothly with lock
-      if (pullCounterTag) {
-        if (pullTagText) pullTagText.textContent = 'Tarik 1x lagi untuk bantuan kucing... 🐾';
-        pullCounterTag.classList.remove('hidden');
-      }
-      audio.playCuriousMew();
-      autoScrollCakeToCenter(true);
-      guideAttentionToCandle();
-
-      if (pullResetTimer) clearTimeout(pullResetTimer);
-      pullResetTimer = setTimeout(() => {
-        pullDownCount = 0;
-        if (pullCounterTag) pullCounterTag.classList.add('hidden');
-      }, 7000);
-
-    } else if (pullDownCount >= 2) {
-      // 2nd Pull: CAT FIGURE EMERGES & POINTS DIRECTLY AT THE FLAME!
-      if (pullResetTimer) clearTimeout(pullResetTimer);
-      if (pullCounterTag) pullCounterTag.classList.add('hidden');
-
-      isCatFlamePointerVisible = true;
-      if (catFlamePointer) {
-        catFlamePointer.classList.remove('hidden');
-        catFlamePointer.classList.add('pop-active');
-        catFlamePointer.setAttribute('aria-hidden', 'false');
-      }
-
-      audio.playCuriousMew();
-
-      if (flameInstructionTag) {
-        flameInstructionTag.classList.remove('pulse-attention');
-        void flameInstructionTag.offsetWidth;
-        flameInstructionTag.classList.add('pulse-attention');
-      }
-      if (candleWrapper) {
-        candleWrapper.classList.remove('cue-attention');
-        void candleWrapper.offsetWidth;
-        candleWrapper.classList.add('cue-attention');
-      }
-
-      // Auto-scroll ke bagian kue agar posisinya persis di tengah layar dengan scroll locked
-      autoScrollCakeToCenter(true);
-
-      guideAttentionToCandle();
-    }
-  }
-
-  // Interactive tap on the cat figure
+  // Interactive tap on the cat figure beside the candle
   if (catFlamePointer) {
     catFlamePointer.addEventListener('click', (e) => {
       e.stopPropagation();
@@ -1254,83 +1031,14 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Touch & wheel gesture detection for pull down / scroll down attempts
-  let touchStartY = 0;
-  let lastTouchY = 0;
-  let touchPullTriggered = false;
-
-  window.addEventListener('touchstart', (e) => {
-    if (isAutoCenteringCake) {
-      return;
-    }
-    if (e.touches && e.touches.length > 0) {
-      touchStartY = e.touches[0].clientY;
-      lastTouchY = e.touches[0].clientY;
-      touchPullTriggered = false;
-    }
-  }, { passive: true });
-
-  window.addEventListener('touchmove', (e) => {
-    if (isAutoCenteringCake) {
-      if (e.cancelable) e.preventDefault();
-      return;
-    }
-    if (!isCandleLit || isJourneyUnlocked || isBlowing) return;
-    if (!cakeSectionEl || !e.touches || e.touches.length === 0) return;
-
-    const currentY = e.touches[0].clientY;
-    if (touchStartY === 0) {
-      touchStartY = currentY;
-      lastTouchY = currentY;
-      return;
-    }
-
-    const swipeUpDelta = lastTouchY - currentY; // swiping up to scroll down
-    const pullDownDelta = currentY - touchStartY; // dragging downwards
-    lastTouchY = currentY;
-
-    if (!touchPullTriggered && (swipeUpDelta > 16 || pullDownDelta > 22)) {
-      touchPullTriggered = true;
-      handlePullDownAttempt();
-    }
-  }, { passive: false });
-
-  window.addEventListener('touchend', () => {
-    touchPullTriggered = false;
-    if (!isAutoCenteringCake) {
-      touchStartY = 0;
-      lastTouchY = 0;
-    }
-  }, { passive: true });
-
-  window.addEventListener('wheel', (e) => {
-    if (isAutoCenteringCake) {
-      if (e.cancelable) e.preventDefault();
-      return;
-    }
-    if (!isCandleLit || isJourneyUnlocked || isBlowing) return;
-    if (!cakeSectionEl) return;
-
-    if (e.deltaY > 8) { // scrolling / rolling wheel down
-      const now = Date.now();
-      if (now - lastPullAttemptTime > 360) {
-        lastPullAttemptTime = now;
-        handlePullDownAttempt();
-      }
-    }
-  }, { passive: false });
-
-  window.addEventListener('keydown', (e) => {
-    if (isAutoCenteringCake && ['ArrowDown', 'ArrowUp', 'PageDown', 'PageUp', 'Space', 'Home', 'End'].includes(e.code)) {
-      if (e.cancelable) e.preventDefault();
-    }
-  }, { passive: false });
-
-  // If user clicks or taps anywhere on the lock gate before blowing candle
-  if (journeyLockGateEl) {
-    journeyLockGateEl.addEventListener('click', () => {
-      if (isCandleLit && !isJourneyUnlocked) {
-        handlePullDownAttempt();
+  // Smooth scroll for explore journey button in wish reveal box
+  const exploreJourneyBtn = document.getElementById('exploreJourneyBtn');
+  if (exploreJourneyBtn) {
+    exploreJourneyBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      const targetSec = document.getElementById('quirksSection') || document.querySelector('.locked-journey-wrapper');
+      if (targetSec) {
+        targetSec.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }
     });
   }
