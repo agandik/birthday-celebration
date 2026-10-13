@@ -1851,8 +1851,8 @@ body:not(.intro-active) .flower-shower-container {
 /* Sparkle & Pointer Trail to Flame */
 .pointer-sparkle-trail {
   position: absolute;
-  top: 36px;
-  left: -20px;
+  top: 40px;
+  left: -14px;
   display: flex;
   align-items: center;
   gap: 3px;
