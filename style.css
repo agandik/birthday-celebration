@@ -2937,6 +2937,7 @@ body::before {
 
 /* Main Stationery Sheet */
 .parchment-letter {
+  display: flow-root;
   position: relative;
   z-index: 3;
   background: #FFFDF9;
@@ -2975,27 +2976,13 @@ body::before {
   box-shadow: 0 1px 3px rgba(100, 60, 40, 0.05);
 }
 
-/* Top Row: Date & Salutation on left, Airmail Stamp on right */
-.letter-top-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 12px;
-  margin-bottom: 8px;
-  position: relative;
-  z-index: 5;
-}
-
-.letter-header-left {
-  flex: 1;
-}
-
 .letter-salutation {
   font-family: var(--font-hand);
   font-size: 2.3rem;
   font-weight: 700;
   color: var(--accent-rose);
-  line-height: 1.2;
+  line-height: 38px;
+  margin: 0 0 4px 0;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -3005,14 +2992,16 @@ body::before {
   font-size: 1.6rem;
 }
 
-/* Airmail Cancellation & Pasted 3x4 Photo on Letter */
+/* Airmail Cancellation & Pasted 3x4 Photo on Letter (Floated top-right) */
 .letter-photo-envelope,
 .letter-stamp-envelope {
+  float: right;
   display: flex;
   align-items: flex-start;
-  gap: 10px;
-  flex-shrink: 0;
-  margin-top: -6px;
+  gap: 12px;
+  margin-left: 20px;
+  margin-bottom: 14px;
+  margin-top: -10px;
   position: relative;
   z-index: 6;
 }
@@ -3026,7 +3015,7 @@ body::before {
   transform: rotate(-5deg);
   pointer-events: none;
   user-select: none;
-  margin-top: 18px;
+  margin-top: 30px;
 }
 
 .postmark-circle {
@@ -3054,17 +3043,17 @@ body::before {
   background-size: 12px 9px;
 }
 
-/* Pasted 3x4 Portrait Photo (Authentic Studio / Photobooth Print) */
+/* Pasted 3x4 Portrait Photo (Authentic Studio / Photobooth Print - Enlarged) */
 .letter-pasted-photo {
   position: relative;
-  width: 98px;
-  height: 130px;
+  width: 136px;
+  height: 181px;
   background: #FFFFFF;
-  padding: 4.5px 4.5px 5.5px 4.5px;
+  padding: 5px 5px 6.5px 5px;
   border-radius: 2px;
   box-shadow: 
-    0 4px 14px rgba(65, 35, 25, 0.18),
-    0 1px 3px rgba(0, 0, 0, 0.08);
+    0 5px 18px rgba(65, 35, 25, 0.2),
+    0 1px 4px rgba(0, 0, 0, 0.1);
   transform: rotate(2.5deg);
   cursor: pointer;
   user-select: none;
@@ -3072,7 +3061,7 @@ body::before {
 }
 
 .letter-pasted-photo:hover {
-  transform: rotate(0deg) scale(1.08);
+  transform: rotate(0deg) scale(1.06);
   box-shadow: 
     0 10px 25px rgba(65, 35, 25, 0.25),
     0 2px 6px rgba(0, 0, 0, 0.12);
@@ -3101,11 +3090,11 @@ body::before {
 /* Realistic Washi Tape Pinning the 3x4 Photo */
 .photo-washi-tape {
   position: absolute;
-  top: -9px;
+  top: -10px;
   left: 50%;
   transform: translateX(-50%) rotate(-1deg);
-  width: 50px;
-  height: 16px;
+  width: 60px;
+  height: 18px;
   background: rgba(255, 175, 192, 0.88);
   background-image: repeating-linear-gradient(45deg, rgba(255,255,255,0.25), rgba(255,255,255,0.25) 4px, transparent 4px, transparent 8px);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
@@ -3856,26 +3845,30 @@ body::before {
   }
   .letter-photo-envelope,
   .letter-stamp-envelope {
-    gap: 6px;
+    gap: 8px;
     margin-top: -8px;
+    margin-left: 12px;
+    margin-bottom: 8px;
   }
   .postal-cancellation {
-    margin-top: 14px;
-    transform: scale(0.88) rotate(-5deg);
+    margin-top: 20px;
+    transform: scale(0.82) rotate(-5deg);
     transform-origin: right center;
   }
   .letter-pasted-photo {
-    width: 84px;
-    height: 112px;
-    padding: 3.5px 3.5px 4.5px 3.5px;
+    width: 110px;
+    height: 147px;
+    padding: 4px 4px 5px 4px;
   }
   .photo-washi-tape {
-    width: 44px;
-    height: 14px;
-    top: -8px;
+    width: 52px;
+    height: 16px;
+    top: -9px;
   }
   .letter-salutation {
-    font-size: 1.95rem;
+    font-size: 2.05rem;
+    line-height: 34px;
+    margin: 0 0 2px 0;
   }
   .letter-body p {
     font-size: 1.34rem;
