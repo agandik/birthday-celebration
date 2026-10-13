@@ -5531,7 +5531,7 @@ body::before {
   align-items: center;
   justify-content: center;
   gap: 12px;
-  margin-bottom: 0.8rem;
+  margin-bottom: 1.25rem;
 }
 
 .svg-footer-icon {
