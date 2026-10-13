@@ -4,6 +4,20 @@
  * Web Audio BGM & SFX Synthesizer, Polaroid Lightbox, Cat Companion Easter Eggs.
  */
 
+// Import dynamic assets so Vite bundles and hashes them correctly for production
+import quirkKucingTaman from './assets/images/quirk_kucing_taman.jpg';
+import quirkNgelusKucing from './assets/images/quirk_ngelus_kucing.webp';
+import quirkMakanSenyum2 from './assets/images/quirk_makan_senyum_2.jpg';
+import quirkMakanSenyum from './assets/images/quirk_makan_senyum.jpg';
+import quirkAktifGemecVideo from './assets/videos/quirk_aktif_gemec.mp4';
+import birthdayQueenFull from './assets/images/birthday_queen_full.jpg';
+
+// Preload toggled assets in background so transitions are instant
+[quirkKucingTaman, quirkMakanSenyum2, birthdayQueenFull].forEach((src) => {
+  const img = new Image();
+  img.src = src;
+});
+
 // 100% Enforce starting back at envelope on page refresh and top of Happy Birthday
 if ('scrollRestoration' in history) {
   history.scrollRestoration = 'manual';
@@ -1184,7 +1198,10 @@ document.addEventListener('DOMContentLoaded', () => {
       const img = card.querySelector('img');
       const title = card.getAttribute('data-title') || 'Kenangan Indah';
       const caption = card.getAttribute('data-caption') || '';
-      const videoSrc = card.getAttribute('data-video');
+      let videoSrc = card.getAttribute('data-video');
+      if (videoSrc && videoSrc.includes('quirk_aktif_gemec')) {
+        videoSrc = quirkAktifGemecVideo;
+      }
 
       openPolaroidModal({
         title,
@@ -1240,14 +1257,21 @@ document.addEventListener('DOMContentLoaded', () => {
   const foodQuirkImg = document.getElementById('foodQuirkImg');
   let foodImgToggleState = 0;
   if (toggleFoodImgBtn && foodQuirkImg) {
+    // Fallback if image fails to load
+    foodQuirkImg.addEventListener('error', () => {
+      if (foodQuirkImg.src !== quirkMakanSenyum) {
+        foodQuirkImg.src = quirkMakanSenyum;
+      }
+    });
+
     toggleFoodImgBtn.addEventListener('click', (e) => {
       e.stopPropagation();
       foodImgToggleState = 1 - foodImgToggleState;
       foodQuirkImg.style.opacity = '0';
       setTimeout(() => {
         foodQuirkImg.src = foodImgToggleState === 1 
-          ? 'assets/images/quirk_makan_senyum_2.jpg' 
-          : 'assets/images/quirk_makan_senyum.jpg';
+          ? quirkMakanSenyum2 
+          : quirkMakanSenyum;
         foodQuirkImg.style.opacity = '1';
       }, 180);
       audio.playTone(650, 0.15, 'sine', 0.05);
@@ -1258,14 +1282,21 @@ document.addEventListener('DOMContentLoaded', () => {
   const catQuirkImg = document.getElementById('catQuirkImg');
   let catImgToggleState = 0;
   if (toggleCatImgBtn && catQuirkImg) {
+    // Fallback if image fails to load
+    catQuirkImg.addEventListener('error', () => {
+      if (catQuirkImg.src !== quirkNgelusKucing) {
+        catQuirkImg.src = quirkNgelusKucing;
+      }
+    });
+
     toggleCatImgBtn.addEventListener('click', (e) => {
       e.stopPropagation();
       catImgToggleState = 1 - catImgToggleState;
       catQuirkImg.style.opacity = '0';
       setTimeout(() => {
         catQuirkImg.src = catImgToggleState === 1 
-          ? 'assets/images/quirk_kucing_taman.jpg' 
-          : 'assets/images/quirk_ngelus_kucing.webp';
+          ? quirkKucingTaman 
+          : quirkNgelusKucing;
         catQuirkImg.style.opacity = '1';
       }, 180);
       audio.playCuriousMew();
@@ -1311,7 +1342,7 @@ document.addEventListener('DOMContentLoaded', () => {
       openPolaroidModal({
         title: 'Tingkah Lincah Sayang',
         caption: 'Momen pas sayang lagi banyak energi dan ketawa lepas. Tingkahnya selalu bikin suasana jadi seru dan menyenangkan.',
-        videoSrc: 'assets/videos/quirk_aktif_gemec.mp4'
+        videoSrc: quirkAktifGemecVideo
       });
     });
   }
@@ -1868,7 +1899,7 @@ document.addEventListener('DOMContentLoaded', () => {
       openPolaroidModal({
         title: 'Tuan Putri Tersayang 👑💖',
         caption: 'Foto manis 3x4 di bawah langit malam berbintang, menemani setiap doa dan harapan baik di hari ulang tahunmu.',
-        imgSrc: 'assets/images/birthday_queen_full.jpg'
+        imgSrc: birthdayQueenFull
       });
     };
 
