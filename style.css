@@ -71,6 +71,14 @@ body.intro-active {
   touch-action: none;
 }
 
+/* Temporary scroll lock during smooth cake-centering return */
+body.cake-scroll-locked {
+  touch-action: none !important;
+  overscroll-behavior: contain !important;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
 /* Ambient Romantic Couple Backdrop across page (inspired by user request & Download (1).mp4) */
 body::before {
   content: '';

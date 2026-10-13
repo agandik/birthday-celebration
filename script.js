@@ -1077,6 +1077,66 @@ document.addEventListener('DOMContentLoaded', () => {
   let pullDownCount = 0;
   let pullResetTimer = null;
 
+  // Scroll lock & precise centering state during return back to cake
+  let isAutoCenteringCake = false;
+  let autoCenterTimer = null;
+  let activeScrollEndHandler = null;
+
+  function unlockCakeScroll() {
+    if (autoCenterTimer) {
+      clearTimeout(autoCenterTimer);
+      autoCenterTimer = null;
+    }
+    if (activeScrollEndHandler) {
+      window.removeEventListener('scrollend', activeScrollEndHandler);
+      activeScrollEndHandler = null;
+    }
+    isAutoCenteringCake = false;
+    document.body.classList.remove('cake-scroll-locked');
+    touchStartY = 0;
+    lastTouchY = 0;
+    touchPullTriggered = false;
+  }
+
+  function autoScrollCakeToCenter(forceLock = true) {
+    if (!isCandleLit || isJourneyUnlocked || isBlowing) return;
+    const cakeEl = document.getElementById('cakeStructure') || document.getElementById('cakeSection');
+    if (!cakeEl) return;
+
+    const rect = cakeEl.getBoundingClientRect();
+    const currentScrollY = window.pageYOffset || document.documentElement.scrollTop;
+    let targetOffset = (window.innerHeight - rect.height) / 2;
+    if (targetOffset < 24) targetOffset = 24; // Ensure flame and hint speech bubble are comfortably visible
+    const targetY = Math.max(0, Math.round(currentScrollY + rect.top - targetOffset));
+
+    // If already centered within 10px, skip redundant locking
+    if (Math.abs(currentScrollY - targetY) < 10) {
+      return;
+    }
+
+    if (forceLock) {
+      isAutoCenteringCake = true;
+      document.body.classList.add('cake-scroll-locked');
+    }
+
+    window.scrollTo({
+      top: targetY,
+      behavior: 'smooth'
+    });
+
+    if (forceLock) {
+      if (autoCenterTimer) clearTimeout(autoCenterTimer);
+      if (activeScrollEndHandler) window.removeEventListener('scrollend', activeScrollEndHandler);
+
+      activeScrollEndHandler = () => {
+        setTimeout(unlockCakeScroll, 60);
+      };
+
+      window.addEventListener('scrollend', activeScrollEndHandler, { once: true });
+      autoCenterTimer = setTimeout(unlockCakeScroll, 750);
+    }
+  }
+
   // Floating Toast Notification Helper
   function showBirthdayToast(msg) {
     const toast = document.getElementById('birthdayToast');
@@ -1102,13 +1162,10 @@ document.addEventListener('DOMContentLoaded', () => {
         e.preventDefault();
         const targetName = link.dataset.lockedTarget || 'halaman ini';
         showBirthdayToast(`Tiup lilin kuemu terlebih dahulu ya sayang untuk membuka ${targetName}!`);
-        const cakeSec = document.getElementById('cakeSection');
-        if (cakeSec) {
-          cakeSec.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          if (candleWrapper) {
-            candleWrapper.classList.add('pulse-btn');
-            setTimeout(() => candleWrapper.classList.remove('pulse-btn'), 1800);
-          }
+        autoScrollCakeToCenter(true);
+        if (candleWrapper) {
+          candleWrapper.classList.add('pulse-btn');
+          setTimeout(() => candleWrapper.classList.remove('pulse-btn'), 1800);
         }
       }
     });
@@ -1118,6 +1175,7 @@ document.addEventListener('DOMContentLoaded', () => {
   function blowOutCandle() {
     if (!isCandleLit || isBlowing) return;
     isBlowing = true;
+    unlockCakeScroll();
 
     // 1. Play soft breath sound & begin subtle flame leaning flutter
     audio.playCandleBlow();
@@ -1269,6 +1327,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function relightCandle() {
     if (isBlowing) return;
+    unlockCakeScroll();
     isCandleLit = true;
     if (flame) flame.classList.remove('out', 'is-blowing');
     if (flameInstructionTag) flameInstructionTag.classList.remove('fade-out');
@@ -1363,12 +1422,12 @@ document.addEventListener('DOMContentLoaded', () => {
       }, 800);
     }
 
-    // 4. Gently snap back if scrolled past the cake into the bottom lock area
+    // 4. Gently snap back with scroll lock if scrolled past the cake into the bottom lock area
     const cakeEl = document.getElementById('cakeStructure') || cakeSectionEl;
     if (cakeEl) {
       const rect = cakeEl.getBoundingClientRect();
       if (rect.bottom < window.innerHeight * 0.65 || rect.top > window.innerHeight * 0.7) {
-        cakeEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        autoScrollCakeToCenter(true);
       }
     }
   }
@@ -1382,7 +1441,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Active when viewing the cake section
     if (rect.top > window.innerHeight * 0.88 || rect.bottom < 60) return;
 
-    // If cat is already visible, bounce it cheerfully, re-center cake, and point towards flame
+    // If cat is already visible, bounce it cheerfully, re-center cake with lock, and point towards flame
     if (isCatFlamePointerVisible && catFlamePointer) {
       catFlamePointer.classList.remove('pop-active');
       void catFlamePointer.offsetWidth;
@@ -1395,11 +1454,7 @@ document.addEventListener('DOMContentLoaded', () => {
         flameInstructionTag.classList.add('pulse-attention');
       }
 
-      const cakeEl = document.getElementById('cakeStructure') || cakeSectionEl;
-      if (cakeEl) {
-        cakeEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      }
-
+      autoScrollCakeToCenter(true);
       guideAttentionToCandle();
       return;
     }
@@ -1408,12 +1463,13 @@ document.addEventListener('DOMContentLoaded', () => {
     pullDownCount++;
 
     if (pullDownCount === 1) {
-      // 1st Pull: Show subtle hint tag to guide the 2nd pull
+      // 1st Pull: Show subtle hint tag to guide the 2nd pull & re-center smoothly with lock
       if (pullCounterTag) {
         if (pullTagText) pullTagText.textContent = 'Tarik 1x lagi untuk bantuan kucing... 🐾';
         pullCounterTag.classList.remove('hidden');
       }
       audio.playCuriousMew();
+      autoScrollCakeToCenter(true);
       guideAttentionToCandle();
 
       if (pullResetTimer) clearTimeout(pullResetTimer);
@@ -1447,11 +1503,8 @@ document.addEventListener('DOMContentLoaded', () => {
         candleWrapper.classList.add('cue-attention');
       }
 
-      // Auto-scroll ke bagian kue agar posisinya persis di tengah layar
-      const cakeEl = document.getElementById('cakeStructure') || cakeSectionEl;
-      if (cakeEl) {
-        cakeEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      }
+      // Auto-scroll ke bagian kue agar posisinya persis di tengah layar dengan scroll locked
+      autoScrollCakeToCenter(true);
 
       guideAttentionToCandle();
     }
@@ -1486,6 +1539,9 @@ document.addEventListener('DOMContentLoaded', () => {
   let touchPullTriggered = false;
 
   window.addEventListener('touchstart', (e) => {
+    if (isAutoCenteringCake) {
+      return;
+    }
     if (e.touches && e.touches.length > 0) {
       touchStartY = e.touches[0].clientY;
       lastTouchY = e.touches[0].clientY;
@@ -1494,10 +1550,20 @@ document.addEventListener('DOMContentLoaded', () => {
   }, { passive: true });
 
   window.addEventListener('touchmove', (e) => {
+    if (isAutoCenteringCake) {
+      if (e.cancelable) e.preventDefault();
+      return;
+    }
     if (!isCandleLit || isJourneyUnlocked || isBlowing) return;
     if (!cakeSectionEl || !e.touches || e.touches.length === 0) return;
 
     const currentY = e.touches[0].clientY;
+    if (touchStartY === 0) {
+      touchStartY = currentY;
+      lastTouchY = currentY;
+      return;
+    }
+
     const swipeUpDelta = lastTouchY - currentY; // swiping up to scroll down
     const pullDownDelta = currentY - touchStartY; // dragging downwards
     lastTouchY = currentY;
@@ -1506,13 +1572,21 @@ document.addEventListener('DOMContentLoaded', () => {
       touchPullTriggered = true;
       handlePullDownAttempt();
     }
-  }, { passive: true });
+  }, { passive: false });
 
   window.addEventListener('touchend', () => {
     touchPullTriggered = false;
+    if (!isAutoCenteringCake) {
+      touchStartY = 0;
+      lastTouchY = 0;
+    }
   }, { passive: true });
 
   window.addEventListener('wheel', (e) => {
+    if (isAutoCenteringCake) {
+      if (e.cancelable) e.preventDefault();
+      return;
+    }
     if (!isCandleLit || isJourneyUnlocked || isBlowing) return;
     if (!cakeSectionEl) return;
 
@@ -1523,7 +1597,13 @@ document.addEventListener('DOMContentLoaded', () => {
         handlePullDownAttempt();
       }
     }
-  }, { passive: true });
+  }, { passive: false });
+
+  window.addEventListener('keydown', (e) => {
+    if (isAutoCenteringCake && ['ArrowDown', 'ArrowUp', 'PageDown', 'PageUp', 'Space', 'Home', 'End'].includes(e.code)) {
+      if (e.cancelable) e.preventDefault();
+    }
+  }, { passive: false });
 
   // If user clicks or taps anywhere on the lock gate before blowing candle
   if (journeyLockGateEl) {
