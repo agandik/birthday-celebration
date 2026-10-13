@@ -1364,10 +1364,11 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // 4. Gently snap back if scrolled past the cake into the bottom lock area
-    if (cakeSectionEl) {
-      const rect = cakeSectionEl.getBoundingClientRect();
-      if (rect.bottom < window.innerHeight * 0.72) {
-        cakeSectionEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    const cakeEl = document.getElementById('cakeStructure') || cakeSectionEl;
+    if (cakeEl) {
+      const rect = cakeEl.getBoundingClientRect();
+      if (rect.bottom < window.innerHeight * 0.65 || rect.top > window.innerHeight * 0.7) {
+        cakeEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
       }
     }
   }
@@ -1381,7 +1382,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Active when viewing the cake section
     if (rect.top > window.innerHeight * 0.88 || rect.bottom < 60) return;
 
-    // If cat is already visible, bounce it cheerfully and re-point towards the flame
+    // If cat is already visible, bounce it cheerfully, re-center cake, and point towards flame
     if (isCatFlamePointerVisible && catFlamePointer) {
       catFlamePointer.classList.remove('pop-active');
       void catFlamePointer.offsetWidth;
@@ -1393,6 +1394,12 @@ document.addEventListener('DOMContentLoaded', () => {
         void flameInstructionTag.offsetWidth;
         flameInstructionTag.classList.add('pulse-attention');
       }
+
+      const cakeEl = document.getElementById('cakeStructure') || cakeSectionEl;
+      if (cakeEl) {
+        cakeEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+
       guideAttentionToCandle();
       return;
     }
@@ -1438,6 +1445,12 @@ document.addEventListener('DOMContentLoaded', () => {
         candleWrapper.classList.remove('cue-attention');
         void candleWrapper.offsetWidth;
         candleWrapper.classList.add('cue-attention');
+      }
+
+      // Auto-scroll ke bagian kue agar posisinya persis di tengah layar
+      const cakeEl = document.getElementById('cakeStructure') || cakeSectionEl;
+      if (cakeEl) {
+        cakeEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
       }
 
       guideAttentionToCandle();
