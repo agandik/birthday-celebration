@@ -2992,15 +2992,6 @@ body::before {
   flex: 1;
 }
 
-.letter-date-heading {
-  font-family: var(--font-hand);
-  font-size: 1.35rem;
-  font-weight: 700;
-  color: #7E5F53;
-  margin-bottom: 6px;
-  display: block;
-}
-
 .letter-salutation {
   font-family: var(--font-hand);
   font-size: 2.3rem;
@@ -3890,9 +3881,6 @@ body::before {
     width: 44px;
     height: 14px;
     top: -8px;
-  }
-  .letter-date-heading {
-    font-size: 1.2rem;
   }
   .letter-salutation {
     font-size: 1.95rem;
