@@ -2978,18 +2978,21 @@ body::before {
 
 .letter-salutation {
   font-family: var(--font-hand);
-  font-size: 2.3rem;
+  font-size: 2.05rem;
   font-weight: 700;
   color: var(--accent-rose);
   line-height: 38px;
   margin: 0 0 4px 0;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
 }
 
 .salutation-doodle {
-  font-size: 1.6rem;
+  font-size: 1.55rem;
+  display: inline-flex;
+  align-items: center;
+  white-space: nowrap;
 }
 
 /* Airmail Cancellation & Pasted 3x4 Photo on Letter (Floated top-right) */
@@ -3851,9 +3854,13 @@ body::before {
     margin-bottom: 8px;
   }
   .postal-cancellation {
-    margin-top: 20px;
+    position: absolute;
+    left: -32px;
+    top: 18px;
+    margin-top: 0;
     transform: scale(0.82) rotate(-5deg);
     transform-origin: right center;
+    z-index: 1;
   }
   .letter-pasted-photo {
     width: 110px;
@@ -3866,9 +3873,15 @@ body::before {
     top: -9px;
   }
   .letter-salutation {
-    font-size: 2.05rem;
+    font-size: 1.65rem;
     line-height: 34px;
     margin: 0 0 2px 0;
+    display: block;
+  }
+  .salutation-doodle {
+    font-size: 1.35rem;
+    display: inline-flex;
+    white-space: nowrap;
   }
   .letter-body p {
     font-size: 1.34rem;
