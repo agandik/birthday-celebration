@@ -793,9 +793,6 @@ document.addEventListener('DOMContentLoaded', () => {
   let isBlowing = false;
   let isJourneyUnlocked = false;
   let isCatRevealed = false;
-  let catScrollCount = 0;
-  let catScrollResetTimer = null;
-  let lastScrollAttemptTime = 0;
 
   // Floating Toast Notification Helper
   function showBirthdayToast(msg) {
@@ -981,7 +978,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (relightCandleBtn) relightCandleBtn.classList.add('hidden');
 
     isCatRevealed = false;
-    catScrollCount = 0;
     if (catFlamePointer) {
       catFlamePointer.classList.add('hidden');
       catFlamePointer.classList.remove('pop-active');
@@ -990,6 +986,7 @@ document.addEventListener('DOMContentLoaded', () => {
         catSpeechBubble.innerHTML = '<span>Tuh apinya di sini! Tiup dulu sayang 🐾🔥</span>';
       }
     }
+    setTimeout(checkCakeScrollPosition, 250);
   }
 
   // Only the flame itself (or generous touch area) blows out the candle!
@@ -1016,7 +1013,7 @@ document.addEventListener('DOMContentLoaded', () => {
   if (relightCandleBtn) relightCandleBtn.addEventListener('click', relightCandle);
 
   // =========================================================================
-  // 5. CAKE GUIDANCE & CAT FLAME POINTER (MUNCUL SETELAH DISCROLL 2 KALI)
+  // 5. CAKE GUIDANCE & CAT FLAME POINTER (MUNCUL OTOMATIS SAAT SUDAH TERSCROLL KE BAWAH)
   // =========================================================================
   const cakeSectionEl = document.getElementById('cakeSection');
 
@@ -1025,35 +1022,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const rect = cakeSectionEl.getBoundingClientRect();
     const windowHeight = window.innerHeight;
     const scrollY = window.pageYOffset || document.documentElement.scrollTop;
-    const isAtBottom = (windowHeight + scrollY) >= (document.documentElement.scrollHeight - 80);
-    const isCakeVisible = rect.top < windowHeight * 0.8 && rect.bottom > 80;
+    const isAtBottom = (windowHeight + scrollY) >= (document.documentElement.scrollHeight - 100);
+    const isCakeVisible = rect.top < windowHeight * 0.75 && rect.bottom > 80;
     return isCakeVisible || isAtBottom;
   }
 
-  function registerCakeScrollAttempt() {
-    if (isCatRevealed || !isCandleLit || isJourneyUnlocked || isBlowing) return;
-    if (!isCakeInActiveView()) return;
-
-    const now = Date.now();
-    if (now - lastScrollAttemptTime < 280) return;
-    lastScrollAttemptTime = now;
-
-    catScrollCount++;
-
-    if (catScrollResetTimer) clearTimeout(catScrollResetTimer);
-    catScrollResetTimer = setTimeout(() => {
-      catScrollCount = 0;
-    }, 12000);
-
-    if (catScrollCount >= 2) {
-      revealCatFlamePointer();
-    }
-  }
-
   function revealCatFlamePointer() {
-    if (isCatRevealed) return;
+    if (isCatRevealed || !isCandleLit || isJourneyUnlocked || isBlowing) return;
     isCatRevealed = true;
-    if (catScrollResetTimer) clearTimeout(catScrollResetTimer);
 
     if (catFlamePointer) {
       catFlamePointer.classList.remove('hidden');
@@ -1069,56 +1045,30 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // Wheel detection (Desktop)
-  let lastWheelAttemptTime = 0;
-  window.addEventListener('wheel', (e) => {
+  // 1. IntersectionObserver: Otomatis memunculkan kucing begitu area kue terlihat saat discroll ke bawah
+  if (cakeSectionEl && 'IntersectionObserver' in window) {
+    const cakeObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting && !isCatRevealed && isCandleLit && !isJourneyUnlocked && !isBlowing) {
+          revealCatFlamePointer();
+        }
+      });
+    }, {
+      threshold: 0.15
+    });
+    cakeObserver.observe(cakeSectionEl);
+  }
+
+  // 2. Scroll listener fallback untuk deteksi posisi bawah seketika
+  function checkCakeScrollPosition() {
     if (isCatRevealed || !isCandleLit || isJourneyUnlocked || isBlowing) return;
-    if (e.deltaY > 6 && isCakeInActiveView()) {
-      const now = Date.now();
-      if (now - lastWheelAttemptTime > 280) {
-        lastWheelAttemptTime = now;
-        registerCakeScrollAttempt();
-      }
+    if (isCakeInActiveView()) {
+      revealCatFlamePointer();
     }
-  }, { passive: true });
+  }
 
-  // Touch gesture detection (Mobile swipe up to scroll down)
-  let touchStartY = 0;
-  let touchScrollFired = false;
-
-  window.addEventListener('touchstart', (e) => {
-    if (e.touches && e.touches.length > 0) {
-      touchStartY = e.touches[0].clientY;
-      touchScrollFired = false;
-    }
-  }, { passive: true });
-
-  window.addEventListener('touchmove', (e) => {
-    if (isCatRevealed || !isCandleLit || isJourneyUnlocked || isBlowing) return;
-    if (!e.touches || e.touches.length === 0) return;
-    if (!isCakeInActiveView()) return;
-
-    const currentY = e.touches[0].clientY;
-    const swipeUpDelta = touchStartY - currentY; // positive when swiping up
-
-    if (!touchScrollFired && swipeUpDelta > 20) {
-      touchScrollFired = true;
-      registerCakeScrollAttempt();
-    }
-  }, { passive: true });
-
-  window.addEventListener('touchend', () => {
-    touchScrollFired = false;
-    touchStartY = 0;
-  }, { passive: true });
-
-  // Keyboard navigation down
-  window.addEventListener('keydown', (e) => {
-    if (isCatRevealed || !isCandleLit || isJourneyUnlocked || isBlowing) return;
-    if (['ArrowDown', 'PageDown', 'Space'].includes(e.code) && isCakeInActiveView()) {
-      registerCakeScrollAttempt();
-    }
-  }, { passive: true });
+  window.addEventListener('scroll', checkCakeScrollPosition, { passive: true });
+  setTimeout(checkCakeScrollPosition, 400);
 
   // Interactive tap on the cat figure beside the candle
   if (catFlamePointer) {
